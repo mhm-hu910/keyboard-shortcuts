@@ -1,0 +1,23 @@
+<div class="container mt-3">
+    <form>
+    <table class="table table-bordered">
+        <tr>
+          <th>Shortcut Name</th>
+          <th>Description</th>
+          <th>Shortcut Keyes</th>
+          <th>Actions</th>
+        </tr>
+
+        <tr *ngFor="let shortcut of ShortcutsKeysService.shortcuts; let i = index">
+          <td>{{shortcut.title}}</td>
+          <td>{{shortcut.description}}</td>
+          <td><input #KSinput type="text" class="form-control w-75" [disabled]="!shortcut.editing" value="{{shortcut.key}}"></td>
+          <td>
+            <button *ngIf="!shortcut.editing" [disabled]="editingShortcut" type="button" (click)="editShortcut(shortcut, KSinput)" class="btn btn-primary bg-primary">Edit</button>
+            <button *ngIf="shortcut.editing" type="button" (click)="updateShortcut(shortcut, KSinput, i)" class="btn btn-success bg-success me-2">Finish</button>
+            <button *ngIf="shortcut.editing" type="button" (click)="cancelEditShortcut(shortcut, KSinput)" class="btn btn-danger bg-danger">Cancel</button>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
