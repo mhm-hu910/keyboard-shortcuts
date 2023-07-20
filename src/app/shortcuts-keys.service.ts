@@ -5,16 +5,40 @@ import { ShortcutEventOutput } from 'ng-keyboard-shortcuts';
   providedIn: 'root'
 })
 
-
 export class ShortcutsKeysService {
 
-  //public disabled: boolean = false;
-
-  constructor() {}
+  constructor() {
+    //localStorage.removeItem('shortcuts');
+    let v = JSON.parse(localStorage.getItem('shortcuts')!);
+    if(v !== null){
+      for(let i = 0; i<this.shortcuts.length; i++){
+        v.forEach((e: any) => {   
+          if(e.index === i){
+            this.shortcuts[e.index].key = e.val;
+          }
+        });
+      }
+    }
+  }
 
   public update(newVal:any ,index: number){
-    //this.shortcuts.splice(index, 1);
-    this.shortcuts[index] = newVal;
+    const newShortcut = {index: index, val: newVal.key};
+    let s_old = JSON.parse(localStorage.getItem('shortcuts')!);
+    if (s_old !== null){
+      let i = s_old.indexOf(newShortcut);
+      if (i === -1) {
+        s_old.push(newShortcut);
+      }
+      else{
+        s_old.splice(i, 1);
+        s_old.push(newShortcut);
+      }
+      localStorage.setItem('shortcuts', JSON.stringify(s_old));
+    }
+    else{
+      let s_new = JSON.stringify([newShortcut]);
+      localStorage.setItem('shortcuts', s_new);
+    }
   }
 
   public shortcuts =

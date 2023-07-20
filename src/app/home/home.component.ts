@@ -9,9 +9,6 @@ import { ShortcutsKeysService } from '../shortcuts-keys.service';
 })
 export class HomeComponent {
 
-  //@ViewChild('html', { static: true }) html!: HTMLElement;
-
-
   constructor(public ShortcutsKeysService: ShortcutsKeysService){
 
   }
@@ -20,13 +17,12 @@ export class HomeComponent {
   editingShortcut = false;
   tempShortcut: any;
   keyString = '';
-  keys:String[] = [];
+  keys:string[] = [];
 
   onKeydownEvent!: (event: KeyboardEvent) => void;
 
   editShortcut(shortcut: any, input: HTMLInputElement){
     this.tempShortcut = JSON.parse(JSON.stringify(shortcut));
-    shortcut.key = '';
     shortcut.editing = true;
     this.editingShortcut = true;
     input.value = '';
@@ -37,24 +33,40 @@ export class HomeComponent {
   }
 
   updateShortcut(shortcut: any, input:HTMLInputElement, index: number){
-    shortcut.editing = false;
-    this.editingShortcut = false;
-    if (input.value === ''){
-      input.value = JSON.parse(JSON.stringify(this.tempShortcut.key));
+    let shortcutNotTaken = true;
+    for(let i=0; i<this.ShortcutsKeysService.shortcuts.length; i++){
+      if(i !== index){
+        if(shortcut.key === this.ShortcutsKeysService.shortcuts[i].key){
+          shortcutNotTaken = false;
+        }
+      }
+    }
+    if(shortcutNotTaken){
+      shortcut.editing = false;
+      this.editingShortcut = false;
+      if (input.value === ''){
+        shortcut.key = this.tempShortcut.key;
+        input.value = this.tempShortcut.key;
+      }
+      else{
+        this.ShortcutsKeysService.update(shortcut, index);
+        window.location.reload();
+      }
+      this.tempShortcut = null;
+      this.keyString = '';
+      this.keys = [];
+      input.removeEventListener('keydown', this.onKeydownEvent);
     }
     else{
-      this.ShortcutsKeysService.update(shortcut, index);
+      alert("Shortcut already taken.");
     }
-    this.tempShortcut = null;
-    this.keyString = '';
-    this.keys = [];
-    input.removeEventListener('keydown', this.onKeydownEvent);
   }
 
   cancelEditShortcut(shortcut: any, input:HTMLInputElement){
     shortcut.editing = false;
     this.editingShortcut = false;
-    shortcut.key = JSON.parse(JSON.stringify(this.tempShortcut.key));
+    shortcut.key = this.tempShortcut.key;
+    input.value = this.tempShortcut.key;
     this.tempShortcut = null;
     this.keyString = '';
     this.keys = [];
@@ -63,27 +75,64 @@ export class HomeComponent {
 
   onKeydown = (event: KeyboardEvent, shortcut: any) => {
     event.preventDefault();
-    if (event.ctrlKey) {
+    if(this.keys.length === 3){
+      return;
+    }
+    else if(event.key === 'ArrowUp'){
+      this.keys.push('up');
+    }
+    else if(event.key === 'ArrowDown'){
+      this.keys.push('down');
+    }
+    else if(event.key === 'ArrowLeft'){
+      this.keys.push('left');
+    }
+    else if(event.key === 'ArrowRight'){
+      this.keys.push('right');
+    }
+    else if (event.ctrlKey) {
       this.keys.push('ctrl');
     }
-    if (event.altKey) {
+    else if (event.altKey) {
       this.keys.push('alt');
     }
-    if (event.shiftKey) {
+    else if (event.shiftKey) {
       this.keys.push('shift');
     }
-    if (event.metaKey) {
+    else if (event.metaKey) {
       this.keys.push('meta');
     }
-    if (event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Shift' && event.key !== 'Meta') {
+    else if(event.key === '+'){
+      this.keys.push('plus');
+    }
+    else if(event.key === ' '){
+      this.keys.push('space');
+    }
+    else if (event.key !== 'Control' && event.key !== 'Alt' && event.key !== 'Shift' && event.key !== 'Meta') {
       this.keys.push(event.key);
     }
-    this.keyString = this.keys.join(' + ');
+
+    if(this.keys.length === 1){
+      this.keyString = this.keys.toString();
+    }
+    else if(this.keys.length > 1){
+      let i = this.keys.length - 1;
+        if((['ctrl', 'alt', 'shift', 'meta'].indexOf(this.keys[i-1]) < 0) && (['ctrl', 'alt', 'shift', 'meta'].indexOf(this.keys[i]) < 0)){
+          if((['ctrl', 'alt', 'shift', 'meta'].indexOf(this.keys[0]) >= 0)){
+            //do nothing
+          }
+          else{
+            this.keyString = this.keyString.concat(' ' + this.keys[i].toString());
+          }
+        }
+        else if((['ctrl', 'alt', 'shift', 'meta'].indexOf(this.keys[0]) >= 0)){
+          this.keyString = this.keyString.concat(' + ' + this.keys[i].toString());
+        }
+        else{
+          this.keys.splice(this.keys.length-1, 1);
+        }
+      }
     shortcut.key = this.keyString;
   }
-
-}
-function updateShortcutInService() {
-  throw new Error('Function not implemented.');
 }
 
